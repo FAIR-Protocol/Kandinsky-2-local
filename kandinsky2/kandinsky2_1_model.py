@@ -54,7 +54,12 @@ class Kandinsky2_1:
             clip_mean,
             clip_std,
         )
-        self.prior.load_state_dict(torch.load(prior_path), strict=False)
+        if device == 'cuda':
+            location = 'cuda'
+        else:
+            location = 'cpu'
+        
+        self.prior.load_state_dict(torch.load(prior_path, map_location=location), strict=False)
         if self.use_fp16:
             self.prior = self.prior.half()
         self.text_encoder = TextEncoder(**self.config["text_enc_params"])
@@ -88,7 +93,7 @@ class Kandinsky2_1:
             
         self.config["model_config"]["cache_text_emb"] = True
         self.model = create_model(**self.config["model_config"])
-        self.model.load_state_dict(torch.load(model_path))
+        self.model.load_state_dict(torch.load(model_path, map_location=location))
         if self.use_fp16:
             self.model.convert_to_fp16()
             self.image_encoder = self.image_encoder.half()
